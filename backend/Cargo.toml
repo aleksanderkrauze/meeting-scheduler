@@ -5,4 +5,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.71"
+axum = "0.6.18"
 dotenvy = "0.15.7"
+tokio = { version = "1.29.1", features = ["full"] }
