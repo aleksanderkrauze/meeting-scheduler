@@ -56,7 +56,7 @@ async fn main() -> Result<()> {
 
 #[axum_macros::debug_handler]
 async fn homepage(State(app_state): State<AppState>) -> Result<Html<String>, (StatusCode, String)> {
-    let results = sqlx::query("SELECT * FROM meetings")
+    let results = sqlx::query("SELECT * FROM meeting")
         .fetch_all(&app_state.database_pool)
         .await
         .context("fetching from database failed")
