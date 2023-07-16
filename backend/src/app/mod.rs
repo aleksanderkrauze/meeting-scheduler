@@ -24,7 +24,7 @@ pub async fn run_server(config: Arc<Config>) -> Result<(), anyhow::Error> {
     };
 
     let app = Router::new()
-        .route("/", get(handlers::homepage))
+        .route("/meeting/:uuid", get(handlers::get_meeting_by_id))
         .with_state(app_state);
 
     info!("Starting server");

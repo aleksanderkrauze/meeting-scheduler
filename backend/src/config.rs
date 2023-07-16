@@ -18,7 +18,7 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Arc<Self>> {
-        info!("Creating configuration from env");
+        info!("Loading configuration from env");
 
         let postgres_user = var("POSTGRES_USER").context("missing env variable POSTGRES_USER")?;
         let postgres_password =

@@ -12,7 +12,6 @@ async fn main() -> Result<()> {
     tracing::info!("Loading .env file");
     let _ = dotenv();
 
-    tracing::info!("Creating configuration from env");
     let config = Config::from_env()?;
 
     run_server(config).await
