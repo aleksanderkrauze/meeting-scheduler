@@ -22,18 +22,31 @@ struct AppState {
     database_pool: PgPool,
 }
 
+async fn db_pool_connect(config: Arc<Config>) -> PgPool {
+    let uri = config.postgres_uri();
+    let timeout = Duration::from_secs(5);
+    loop {
+        eprintln!("Connecting to database...");
+        let pool = PgPoolOptions::new()
+            .max_connections(64)
+            .acquire_timeout(timeout)
+            .connect(&uri)
+            .await;
+        match pool {
+            Ok(pool) => return pool,
+            Err(e) => eprintln!("Connecting to database failed: `{:?}`. Trying again...", e),
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let _ = dotenv();
 
     let config = Config::from_env()?;
 
-    let database_pool = PgPoolOptions::new()
-        .max_connections(64)
-        .acquire_timeout(Duration::from_secs(2))
-        .connect(&config.postgres_uri())
-        .await
-        .context("failed to create db connection pool")?;
+    let database_pool = db_pool_connect(Arc::clone(&config)).await;
+    eprintln!("Connected to database");
 
     let app_state = AppState {
         config: Arc::clone(&config),
