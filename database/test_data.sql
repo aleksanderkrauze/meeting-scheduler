@@ -1,7 +1,7 @@
 INSERT INTO user_data(id, secret_token, name) VALUES
     ('0d733785-9e90-4f98-aa3a-687f7fc17634', 'f5fc6cb8-3055-4ced-b31d-2fddc61258cb', 'Alice'),
     ('26eacae9-2bc2-4611-8839-c9a3e9086c10', '5770d8cf-22a7-4b25-b108-75ea048143a3', 'Bob'),
-    ('73fd1be4-539b-4d60-9bd7-cef6eb5bf721', '47cf8fa8-8b27-47da-9966-2f731efe10d5', NULL),
+    ('73fd1be4-539b-4d60-9bd7-cef6eb5bf721', '47cf8fa8-8b27-47da-9966-2f731efe10d5', 'Charlie'),
     ('e6d073dd-755d-40e4-8cc7-f5ffe88edb49', 'bf31a94e-0c66-4b90-ac6e-e617c2b3da32', 'Derek');
 
 INSERT INTO meeting(id, name, description, created_at, expires_at, user_data_id) VALUES

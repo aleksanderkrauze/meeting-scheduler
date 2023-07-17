@@ -15,7 +15,7 @@ CREATE TYPE PROPOSED_DATE_VOTE AS ENUM ('no', 'maybe', 'ok');
 CREATE TABLE user_data (
     id UUID PRIMARY KEY,
     secret_token UUID NOT NULL,
-    name VARCHAR(100)
+    name VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE meeting (
