@@ -1,10 +1,11 @@
-INSERT INTO user_data(id, secret_token, name) VALUES
+INSERT INTO users(id, secret_token, name) VALUES
     ('0d733785-9e90-4f98-aa3a-687f7fc17634', 'f5fc6cb8-3055-4ced-b31d-2fddc61258cb', 'Alice'),
     ('26eacae9-2bc2-4611-8839-c9a3e9086c10', '5770d8cf-22a7-4b25-b108-75ea048143a3', 'Bob'),
     ('73fd1be4-539b-4d60-9bd7-cef6eb5bf721', '47cf8fa8-8b27-47da-9966-2f731efe10d5', 'Charlie'),
-    ('e6d073dd-755d-40e4-8cc7-f5ffe88edb49', 'bf31a94e-0c66-4b90-ac6e-e617c2b3da32', 'Derek');
+    ('e6d073dd-755d-40e4-8cc7-f5ffe88edb49', 'bf31a94e-0c66-4b90-ac6e-e617c2b3da32', 'Derek'),
+    ('f3521c85-4654-433c-a1db-acd2dd4c0d96', 'd821a720-9185-43ef-ace0-2a9b5ff33bc6', 'Eddie');
 
-INSERT INTO meeting(id, name, description, created_at, expires_at, user_data_id) VALUES
+INSERT INTO meeting(id, name, description, created_at, expires_at, user_id) VALUES
     (
         '0dbee40e-95d7-4d70-ac16-f3501977940b',
         'Meeting 1',
@@ -19,9 +20,17 @@ INSERT INTO proposed_date(id, meeting_id, date) VALUES
     ('056a56b8-8080-49ad-b16d-7b8325215157', '0dbee40e-95d7-4d70-ac16-f3501977940b', '2023-07-11'),
     ('6fad22d3-f777-4b00-a6df-1912bb4d7b79', '0dbee40e-95d7-4d70-ac16-f3501977940b', '2023-07-12'),
     ('29cce3e4-d518-41cc-bd6e-648f74d8379d', '0dbee40e-95d7-4d70-ac16-f3501977940b', '2023-07-13'),
-    ('9e52126f-5dd8-4a1c-9b97-8f5eb015fb80', '0dbee40e-95d7-4d70-ac16-f3501977940b', '2023-07-14');
+    ('9e52126f-5dd8-4a1c-9b97-8f5eb015fb80', '0dbee40e-95d7-4d70-ac16-f3501977940b', '2023-07-14'),
+    ('34a6307d-1939-4441-b4a6-6b81e5a9a281', '0dbee40e-95d7-4d70-ac16-f3501977940b', '2023-07-15');
 
-INSERT INTO proposed_date_user_votes(proposed_date_id, user_data_id, vote, comment) VALUES
+INSERT INTO meeting_participants(user_id, meeting_id) VALUES
+    ('0d733785-9e90-4f98-aa3a-687f7fc17634', '0dbee40e-95d7-4d70-ac16-f3501977940b'),
+    ('26eacae9-2bc2-4611-8839-c9a3e9086c10', '0dbee40e-95d7-4d70-ac16-f3501977940b'),
+    ('73fd1be4-539b-4d60-9bd7-cef6eb5bf721', '0dbee40e-95d7-4d70-ac16-f3501977940b'),
+    ('e6d073dd-755d-40e4-8cc7-f5ffe88edb49', '0dbee40e-95d7-4d70-ac16-f3501977940b'),
+    ('f3521c85-4654-433c-a1db-acd2dd4c0d96', '0dbee40e-95d7-4d70-ac16-f3501977940b');
+
+INSERT INTO proposed_date_user_votes(proposed_date_id, user_id, vote, comment) VALUES
     ('ce5e7889-0bb1-4ff0-8efb-3697a3328590', '0d733785-9e90-4f98-aa3a-687f7fc17634', 'ok', NULL),
     ('056a56b8-8080-49ad-b16d-7b8325215157', '0d733785-9e90-4f98-aa3a-687f7fc17634', 'ok', NULL),
     ('29cce3e4-d518-41cc-bd6e-648f74d8379d', '0d733785-9e90-4f98-aa3a-687f7fc17634', 'ok', NULL),
@@ -32,7 +41,7 @@ INSERT INTO proposed_date_user_votes(proposed_date_id, user_data_id, vote, comme
     ('056a56b8-8080-49ad-b16d-7b8325215157', 'e6d073dd-755d-40e4-8cc7-f5ffe88edb49', 'maybe', 'foobar'),
     ('6fad22d3-f777-4b00-a6df-1912bb4d7b79', 'e6d073dd-755d-40e4-8cc7-f5ffe88edb49', 'ok', NULL);
 
-INSERT INTO meeting_comment(id, user_data_id, meeting_id, message, posted_at) VALUES
+INSERT INTO meeting_comment(id, user_id, meeting_id, message, posted_at) VALUES
     (
         'dafb3e95-525a-4b8a-b1d6-778b7799dda4',
         '0d733785-9e90-4f98-aa3a-687f7fc17634',
