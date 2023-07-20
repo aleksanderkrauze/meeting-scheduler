@@ -7,11 +7,11 @@ DROP TABLE IF EXISTS meeting_participants CASCADE;
 DROP TABLE IF EXISTS proposed_date_user_votes CASCADE;
 DROP TABLE IF EXISTS meeting_comment CASCADE;
 
-DROP TYPE IF EXISTS PROPOSED_DATE_VOTE CASCADE;
+DROP TYPE IF EXISTS proposed_date_vote CASCADE;
 
 -- Declarations
 
-CREATE TYPE PROPOSED_DATE_VOTE AS ENUM ('no', 'maybe', 'ok');
+CREATE TYPE proposed_date_vote AS ENUM ('no', 'maybe', 'ok');
 
 CREATE TABLE users (
     id UUID PRIMARY KEY,
@@ -64,7 +64,7 @@ CREATE TABLE meeting_participants (
 CREATE TABLE proposed_date_user_votes (
     proposed_date_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    vote PROPOSED_DATE_VOTE NOT NULL,
+    vote proposed_date_vote NOT NULL,
     comment VARCHAR(200),
 
     FOREIGN KEY(proposed_date_id)
