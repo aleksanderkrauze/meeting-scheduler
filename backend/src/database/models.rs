@@ -1,9 +1,8 @@
-use serde::Serialize;
 use sqlx::FromRow;
 use time::{Date, OffsetDateTime};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, FromRow, Serialize)]
+#[derive(Debug, Clone, FromRow)]
 pub struct MeetingInfo {
     /// Name of the meeting
     pub(crate) name: String,
@@ -12,18 +11,16 @@ pub struct MeetingInfo {
     /// Id of the user that created the meeting
     pub(crate) created_by: Uuid,
     /// Date and time of meeting creation
-    #[serde(with = "time::serde::iso8601")]
     pub(crate) created_at: OffsetDateTime,
 }
 
-#[derive(Debug, Clone, FromRow, Serialize)]
+#[derive(Debug, Clone, FromRow)]
 pub struct MeetingComment {
     /// Comment message
     pub(crate) message: String,
     /// Id of the user that posted the comment
     pub(crate) written_by: Uuid,
     /// Date and time of posting comment
-    #[serde(with = "time::serde::iso8601")]
     pub(crate) posted_at: OffsetDateTime,
 }
 

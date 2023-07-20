@@ -1,6 +1,6 @@
 use anyhow::{anyhow, bail, Result};
 use serde::Serialize;
-use time::Date;
+use time::{Date, OffsetDateTime};
 use uuid::Uuid;
 
 use crate::database::models;
@@ -90,10 +90,66 @@ struct ParticipantVote {
 }
 
 #[derive(Debug, Clone, Serialize)]
+pub struct MeetingInfo {
+    /// Name of the meeting
+    pub(crate) name: String,
+    /// Description of the meeting
+    pub(crate) description: Option<String>,
+    /// Id of the user that created the meeting
+    pub(crate) created_by: Uuid,
+    /// Date and time of meeting creation
+    #[serde(with = "time::serde::iso8601")]
+    pub(crate) created_at: OffsetDateTime,
+}
+
+impl From<models::MeetingInfo> for MeetingInfo {
+    fn from(value: models::MeetingInfo) -> Self {
+        let models::MeetingInfo {
+            name,
+            description,
+            created_by,
+            created_at,
+        } = value;
+        Self {
+            name,
+            description,
+            created_by,
+            created_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct MeetingComment {
+    /// Comment message
+    pub(crate) message: String,
+    /// Id of the user that posted the comment
+    pub(crate) written_by: Uuid,
+    /// Date and time of posting comment
+    #[serde(with = "time::serde::iso8601")]
+    pub(crate) posted_at: OffsetDateTime,
+}
+
+impl From<models::MeetingComment> for MeetingComment {
+    fn from(value: models::MeetingComment) -> Self {
+        let models::MeetingComment {
+            message,
+            written_by,
+            posted_at,
+        } = value;
+        Self {
+            message,
+            written_by,
+            posted_at,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct Meeting {
     #[serde(flatten)]
-    meeting_info: models::MeetingInfo,
-    comments: Vec<models::MeetingComment>,
+    meeting_info: MeetingInfo,
+    comments: Vec<MeetingComment>,
     participants: Vec<Participant>,
     proposed_dates: Vec<ProposedDate>,
     votes: Vec<ParticipantVote>,
@@ -105,6 +161,11 @@ impl Meeting {
         comments: Vec<models::MeetingComment>,
         participants_proposed_dates_votes: Vec<models::ParticipantsProposedDatesVotes>,
     ) -> Result<Self> {
+        let meeting_info = meeting_info.into();
+        let model_comments = comments;
+        let mut comments = Vec::with_capacity(model_comments.len());
+        comments.extend(model_comments.into_iter().map(Into::into));
+
         let mut participants = Vec::new();
         let mut proposed_dates = Vec::new();
         let mut votes = Vec::new();
