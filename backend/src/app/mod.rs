@@ -28,7 +28,9 @@ pub async fn run_server(config: Arc<Config>) -> Result<(), anyhow::Error> {
         .with_state(app_state);
 
     info!("Starting server");
-    Server::bind(&config.server_socket_addr())
+    let address = config.server_socket_addr();
+    Server::try_bind(&address)
+        .with_context(|| format!("failed to bind server to address {:?}", address))?
         .serve(app.into_make_service())
         .await
         .context("Failed to start server")?;
