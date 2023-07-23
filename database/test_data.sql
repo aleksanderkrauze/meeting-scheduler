@@ -1,3 +1,5 @@
+BEGIN;
+
 INSERT INTO users(id, secret_token, name) VALUES
     ('0d733785-9e90-4f98-aa3a-687f7fc17634', 'f5fc6cb8-3055-4ced-b31d-2fddc61258cb', 'Alice'),
     ('26eacae9-2bc2-4611-8839-c9a3e9086c10', '5770d8cf-22a7-4b25-b108-75ea048143a3', 'Bob'),
@@ -63,3 +65,5 @@ INSERT INTO meeting_comment(id, user_id, meeting_id, message, posted_at) VALUES
         'Sorry for posting that late. I don''t think I will be able to come.',
         '2023-07-5 14:00:00+00'
     );
+
+COMMIT;

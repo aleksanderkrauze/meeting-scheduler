@@ -72,7 +72,7 @@ CREATE TABLE proposed_date_user_votes (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     FOREIGN KEY(user_id)
-        REFERENCES meeting_participants(user_id)
+        REFERENCES users(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     UNIQUE(proposed_date_id, user_id)
