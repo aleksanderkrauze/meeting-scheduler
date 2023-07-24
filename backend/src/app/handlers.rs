@@ -1,14 +1,15 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::Json,
+    response::{IntoResponse, Json},
 };
 use tracing::info;
 use uuid::Uuid;
 
-use super::AppState;
-use crate::api::output::Meeting;
+use super::{business_logic, AppState};
+use crate::api::input::CreateMeetingData;
+use crate::api::output::{CreatedMeeting, Meeting};
 use crate::database;
 
 #[axum_macros::debug_handler]
@@ -44,6 +45,36 @@ pub async fn get_meeting_by_id(
     ))
 }
 
+#[axum_macros::debug_handler]
+#[tracing::instrument(skip(app_state))]
+pub async fn create_meeting(
+    State(app_state): State<AppState>,
+    Json(data): Json<CreateMeetingData>,
+) -> Result<(StatusCode, Json<CreatedMeeting>), StatusCode> {
+    info!("Creating new meeting");
+
+    let user = business_logic::User::new(data.user_name)
+        .context("failed to create user")
+        .map_err(bad_request)?;
+    let meeting =
+        business_logic::Meeting::new(data.meeting_name, data.meeting_description, user.id)
+            .context("failed to create meeting")
+            .map_err(bad_request)?;
+
+    database::create_new_meeting(&user, &meeting, &app_state.database_pool)
+        .await
+        .context("failed to insert new meeting into database")
+        .map_err(internal_error)?;
+
+    let response = CreatedMeeting {
+        user_id: user.id,
+        user_secret_token: user.secret_token,
+        meeting_id: meeting.id,
+    };
+    info!(?response, "Created new meeting");
+    Ok((StatusCode::CREATED, Json(response)))
+}
+
 fn internal_error(err: anyhow::Error) -> StatusCode {
     info!(error = ?err, "Internal error");
     StatusCode::INTERNAL_SERVER_ERROR
@@ -52,4 +83,9 @@ fn internal_error(err: anyhow::Error) -> StatusCode {
 fn not_found_error(err: anyhow::Error) -> StatusCode {
     info!(error = ?err, "Not found error");
     StatusCode::NOT_FOUND
+}
+
+fn bad_request(err: anyhow::Error) -> StatusCode {
+    info!(error = ?err, "Bad request");
+    StatusCode::BAD_REQUEST
 }

@@ -224,3 +224,10 @@ impl Meeting {
         })
     }
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CreatedMeeting {
+    pub(crate) user_id: Uuid,
+    pub(crate) user_secret_token: Uuid,
+    pub(crate) meeting_id: Uuid,
+}

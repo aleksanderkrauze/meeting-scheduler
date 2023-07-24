@@ -1,9 +1,13 @@
-mod handlers;
+pub(crate) mod business_logic;
+pub(crate) mod handlers;
 
 use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
-use axum::{routing::get, Router, Server};
+use axum::{
+    routing::{get, post},
+    Router, Server,
+};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use tracing::{info, warn};
 
@@ -24,6 +28,7 @@ pub async fn run_server(config: Arc<Config>) -> Result<(), anyhow::Error> {
     };
 
     let app = Router::new()
+        .route("/meeting", post(handlers::create_meeting))
         .route("/meeting/:uuid", get(handlers::get_meeting_by_id))
         .with_state(app_state);
 

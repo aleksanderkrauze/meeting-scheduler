@@ -1,9 +1,12 @@
 pub mod models;
 
 use anyhow::{Context, Result};
+use futures::future::TryFutureExt;
 use sqlx::PgPool;
-use tracing::debug;
+use tracing::{debug, error, info, warn};
 use uuid::Uuid;
+
+use crate::app::business_logic;
 
 pub async fn get_meeting_info(id: Uuid, pool: &PgPool) -> Result<Option<models::MeetingInfo>> {
     let query = r#"
@@ -86,4 +89,83 @@ WHERE
         .fetch_all(pool)
         .await
         .map_err(Into::into)
+}
+
+pub async fn create_new_meeting(
+    user: &business_logic::User,
+    meeting: &business_logic::Meeting,
+    pool: &PgPool,
+) -> Result<()> {
+    let insert_user_query = r#"
+INSERT INTO
+    users(id, secret_token, name)
+VALUES
+    ($1, $2, $3)
+"#;
+    let insert_meeting_query = r#"
+INSERT INTO
+    meeting(id, name, description, created_at, expires_at, user_id)
+VALUES
+    ($1, $2, $3, $4, $5, $6)
+"#;
+    let insert_meeting_participants_query = r#"
+INSERT INTO
+    meeting_participants(user_id, meeting_id)
+VALUES
+    ($1, $2)
+"#;
+
+    let insert_user = || async {
+        sqlx::query(insert_user_query)
+            .bind(user.id)
+            .bind(user.secret_token)
+            .bind(&user.name)
+            .execute(pool)
+            .await
+            .context("failed to insert into users")
+    };
+    let insert_meeting = || async {
+        sqlx::query(insert_meeting_query)
+            .bind(meeting.id)
+            .bind(&meeting.name)
+            .bind(&meeting.description)
+            .bind(meeting.created_at)
+            .bind(meeting.expires_at)
+            .bind(meeting.user_id)
+            .execute(pool)
+            .await
+            .context("failed to insert into meeting")
+    };
+    let insert_meeting_participants = || async {
+        sqlx::query(insert_meeting_participants_query)
+            .bind(user.id)
+            .bind(meeting.id)
+            .execute(pool)
+            .await
+            .context("failed to insert into meeting_participants")
+    };
+
+    info!("starting transaction");
+    let transaction = pool.begin().await.context("failed to begin transaction")?;
+    if let Err(error) = insert_user()
+        .and_then(|_| async { insert_meeting().await })
+        .and_then(|_| async { insert_meeting_participants().await })
+        .await
+    {
+        match transaction.rollback().await {
+            Ok(_) => warn!(database_error = ?error, "rolled back transaction"),
+            Err(rollback_error) => {
+                error!(database_error = ?error, ?rollback_error, "failed to rollback transaction");
+            }
+        }
+
+        Err(error)
+    } else {
+        transaction
+            .commit()
+            .await
+            .context("failed to commit transaction")?;
+        info!("commited transaction");
+        Ok(())
+    }
 }
