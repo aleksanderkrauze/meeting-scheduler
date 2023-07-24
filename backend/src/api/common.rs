@@ -19,17 +19,3 @@ impl From<models::Vote> for Vote {
         }
     }
 }
-
-pub mod serde_date {
-    use serde::ser::Error as _;
-    use serde::{Serialize, Serializer};
-    use time::{format_description::FormatItem, macros::format_description, Date};
-
-    static DATE_FORMATTER: &[FormatItem] = format_description!("[year]-[month]-[day]");
-
-    pub fn serialize<S: Serializer>(date: &Date, serializer: S) -> Result<S::Ok, S::Error> {
-        date.format(&DATE_FORMATTER)
-            .map_err(S::Error::custom)?
-            .serialize(serializer)
-    }
-}

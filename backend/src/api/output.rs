@@ -77,7 +77,7 @@ struct Participant {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 struct ProposedDate {
     id: Uuid,
-    #[serde(with = "super::common::serde_date")]
+    #[serde(with = "super::serde_date")]
     date: Date,
 }
 
