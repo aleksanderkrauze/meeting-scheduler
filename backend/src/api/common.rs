@@ -4,7 +4,7 @@ use crate::database::models;
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Vote {
+pub(crate) enum Vote {
     No,
     Maybe,
     Yes,

@@ -7,7 +7,7 @@ use crate::database::models;
 
 use super::common::Vote;
 
-enum ValidatedParticipantsProposedDatesVotes {
+pub(crate) enum ValidatedParticipantsProposedDatesVotes {
     Participant {
         user_id: Uuid,
         name: String,
@@ -69,28 +69,28 @@ impl TryFrom<models::ParticipantsProposedDatesVotes> for ValidatedParticipantsPr
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-struct Participant {
-    id: Uuid,
-    name: String,
+pub(crate) struct Participant {
+    pub(crate) id: Uuid,
+    pub(crate) name: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-struct ProposedDate {
-    id: Uuid,
+pub(crate) struct ProposedDate {
+    pub(crate) id: Uuid,
     #[serde(with = "super::serde_date")]
-    date: Date,
+    pub(crate) date: Date,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
-struct ParticipantVote {
-    participant_id: Uuid,
-    date_id: Uuid,
-    vote: Vote,
-    comment: Option<String>,
+pub(crate) struct ParticipantVote {
+    pub(crate) participant_id: Uuid,
+    pub(crate) date_id: Uuid,
+    pub(crate) vote: Vote,
+    pub(crate) comment: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct MeetingInfo {
+pub(crate) struct MeetingInfo {
     /// Name of the meeting
     pub(crate) name: String,
     /// Description of the meeting
@@ -120,7 +120,7 @@ impl From<models::MeetingInfo> for MeetingInfo {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct MeetingComment {
+pub(crate) struct MeetingComment {
     /// Comment message
     pub(crate) message: String,
     /// Id of the user that posted the comment
@@ -148,11 +148,11 @@ impl From<models::MeetingComment> for MeetingComment {
 #[derive(Debug, Clone, Serialize)]
 pub struct Meeting {
     #[serde(flatten)]
-    meeting_info: MeetingInfo,
-    comments: Vec<MeetingComment>,
-    participants: Vec<Participant>,
-    proposed_dates: Vec<ProposedDate>,
-    votes: Vec<ParticipantVote>,
+    pub(crate) meeting_info: MeetingInfo,
+    pub(crate) comments: Vec<MeetingComment>,
+    pub(crate) participants: Vec<Participant>,
+    pub(crate) proposed_dates: Vec<ProposedDate>,
+    pub(crate) votes: Vec<ParticipantVote>,
 }
 
 impl Meeting {
