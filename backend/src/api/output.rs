@@ -3,9 +3,8 @@ use serde::Serialize;
 use time::{Date, OffsetDateTime};
 use uuid::Uuid;
 
-use crate::database::models;
-
 use super::common::Vote;
+use crate::database::models;
 
 pub(crate) enum ValidatedParticipantsProposedDatesVotes {
     Participant {

@@ -2,13 +2,24 @@ use anyhow::Result;
 use dotenvy::dotenv;
 
 use backend::{run_server, Config};
+use tracing_subscriber::{
+    filter::{self, FilterExt},
+    layer::{Layer, SubscriberExt},
+    registry,
+    util::SubscriberInitExt,
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+    let stderr_layer = tracing_subscriber::fmt::layer()
+        .pretty()
         .with_writer(std::io::stderr)
-        .init();
+        .with_filter(
+            filter::LevelFilter::DEBUG.and(filter::filter_fn(|metadata| {
+                metadata.target().starts_with("backend")
+            })),
+        );
+    registry().with(stderr_layer).init();
 
     tracing::info!("Loading .env file");
     let _ = dotenv();
