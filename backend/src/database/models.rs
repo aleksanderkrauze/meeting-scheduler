@@ -3,7 +3,7 @@ use time::{Date, OffsetDateTime};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, FromRow)]
-pub struct MeetingInfo {
+pub(crate) struct MeetingInfo {
     /// Name of the meeting
     pub(crate) name: String,
     /// Description of the meeting
@@ -15,7 +15,7 @@ pub struct MeetingInfo {
 }
 
 #[derive(Debug, Clone, FromRow)]
-pub struct MeetingComment {
+pub(crate) struct MeetingComment {
     /// Comment message
     pub(crate) message: String,
     /// Id of the user that posted the comment
@@ -27,14 +27,14 @@ pub struct MeetingComment {
 #[derive(Debug, Clone, Copy, sqlx::Type)]
 #[sqlx(type_name = "proposed_date_vote")]
 #[sqlx(rename_all = "lowercase")]
-pub enum Vote {
+pub(crate) enum Vote {
     No,
     Maybe,
     Ok,
 }
 
 #[derive(Debug, Clone, FromRow)]
-pub struct ParticipantsProposedDatesVotes {
+pub(crate) struct ParticipantsProposedDatesVotes {
     /// User id. May be NULL if this row contains date that no one has voted on.
     pub(crate) user_id: Option<Uuid>,
     /// User name. May be NULL <=> user_id is NULL

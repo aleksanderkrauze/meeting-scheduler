@@ -7,13 +7,13 @@ use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub postgres_user: String,
-    pub postgres_password: String,
-    pub postgres_url: String,
-    pub postgres_port: u16,
-    pub postgres_db: String,
-    pub server_addr: IpAddr,
-    pub server_port: u16,
+    pub(crate) postgres_user: String,
+    pub(crate) postgres_password: String,
+    pub(crate) postgres_url: String,
+    pub(crate) postgres_port: u16,
+    pub(crate) postgres_db: String,
+    pub(crate) server_addr: IpAddr,
+    pub(crate) server_port: u16,
 }
 
 impl Config {
@@ -51,7 +51,7 @@ impl Config {
         Ok(Arc::new(config))
     }
 
-    pub fn postgres_uri(&self) -> String {
+    pub(crate) fn postgres_uri(&self) -> String {
         format!(
             "postgresql://{}:{}@{}:{}/{}",
             self.postgres_user,
@@ -62,7 +62,7 @@ impl Config {
         )
     }
 
-    pub fn server_socket_addr(&self) -> SocketAddr {
+    pub(crate) fn server_socket_addr(&self) -> SocketAddr {
         SocketAddr::new(self.server_addr, self.server_port)
     }
 }

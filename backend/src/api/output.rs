@@ -145,7 +145,7 @@ impl From<models::MeetingComment> for MeetingComment {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct Meeting {
+pub(crate) struct Meeting {
     #[serde(flatten)]
     pub(crate) meeting_info: MeetingInfo,
     pub(crate) comments: Vec<MeetingComment>,
@@ -155,7 +155,7 @@ pub struct Meeting {
 }
 
 impl Meeting {
-    pub fn new(
+    pub(crate) fn new(
         meeting_info: models::MeetingInfo,
         comments: Vec<models::MeetingComment>,
         participants_proposed_dates_votes: Vec<models::ParticipantsProposedDatesVotes>,
@@ -225,7 +225,7 @@ impl Meeting {
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct CreatedMeeting {
+pub(crate) struct CreatedMeeting {
     pub(crate) user_id: Uuid,
     pub(crate) user_secret_token: Uuid,
     pub(crate) meeting_id: Uuid,

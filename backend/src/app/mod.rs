@@ -14,7 +14,8 @@ use tracing::{info, warn};
 use crate::config::Config;
 
 #[derive(Debug, Clone)]
-pub struct AppState {
+pub(crate) struct AppState {
+    #[allow(dead_code)]
     pub(crate) config: Arc<Config>,
     pub(crate) database_pool: PgPool,
 }

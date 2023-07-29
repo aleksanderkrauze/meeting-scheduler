@@ -26,13 +26,13 @@ impl<'a> de::Visitor<'a> for Iso8601DateVisitor {
     }
 }
 
-pub fn serialize<S: Serializer>(date: &Date, serializer: S) -> Result<S::Ok, S::Error> {
+pub(crate) fn serialize<S: Serializer>(date: &Date, serializer: S) -> Result<S::Ok, S::Error> {
     date.format(&DATE_FORMATTER)
         .map_err(S::Error::custom)?
         .serialize(serializer)
 }
 
-pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<Date, D::Error> {
+pub(crate) fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<Date, D::Error> {
     deserializer.deserialize_str(Iso8601DateVisitor)
 }
 

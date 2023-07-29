@@ -1,4 +1,4 @@
-pub mod models;
+pub(crate) mod models;
 
 use anyhow::{Context, Result};
 use futures::future::TryFutureExt;
@@ -8,7 +8,10 @@ use uuid::Uuid;
 
 use crate::app::business_logic;
 
-pub async fn get_meeting_info(id: Uuid, pool: &PgPool) -> Result<Option<models::MeetingInfo>> {
+pub(crate) async fn get_meeting_info(
+    id: Uuid,
+    pool: &PgPool,
+) -> Result<Option<models::MeetingInfo>> {
     let query = r#"
 SELECT
     meeting.name, meeting.description, users.id AS created_by, meeting.created_at
@@ -30,7 +33,10 @@ WHERE
     Ok(meeting)
 }
 
-pub async fn get_meeting_comments(id: Uuid, pool: &PgPool) -> Result<Vec<models::MeetingComment>> {
+pub(crate) async fn get_meeting_comments(
+    id: Uuid,
+    pool: &PgPool,
+) -> Result<Vec<models::MeetingComment>> {
     let query = r#"
 SELECT
     users.id AS written_by, meeting_comment.message, meeting_comment.posted_at
@@ -54,7 +60,7 @@ ORDER BY
     Ok(comments)
 }
 
-pub async fn get_meeting_participants_proposed_dates_votes(
+pub(crate) async fn get_meeting_participants_proposed_dates_votes(
     id: Uuid,
     pool: &PgPool,
 ) -> Result<Vec<models::ParticipantsProposedDatesVotes>> {
@@ -91,7 +97,7 @@ WHERE
         .map_err(Into::into)
 }
 
-pub async fn create_new_meeting(
+pub(crate) async fn create_new_meeting(
     user: &business_logic::User,
     meeting: &business_logic::Meeting,
     pool: &PgPool,

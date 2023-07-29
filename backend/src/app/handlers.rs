@@ -2,7 +2,7 @@ use anyhow::{anyhow, Context};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::{IntoResponse, Json},
+    response::Json,
 };
 use tracing::info;
 use uuid::Uuid;
@@ -14,7 +14,7 @@ use crate::database;
 
 #[axum_macros::debug_handler]
 #[tracing::instrument(skip(app_state))]
-pub async fn get_meeting_by_id(
+pub(crate) async fn get_meeting_by_id(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Meeting>, StatusCode> {
@@ -47,7 +47,7 @@ pub async fn get_meeting_by_id(
 
 #[axum_macros::debug_handler]
 #[tracing::instrument(skip(app_state))]
-pub async fn create_meeting(
+pub(crate) async fn create_meeting(
     State(app_state): State<AppState>,
     Json(data): Json<CreateMeetingData>,
 ) -> Result<(StatusCode, Json<CreatedMeeting>), StatusCode> {

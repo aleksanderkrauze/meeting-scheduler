@@ -3,14 +3,14 @@ use time::{ext::NumericalDuration, OffsetDateTime};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
-pub struct User {
+pub(crate) struct User {
     pub(crate) id: Uuid,
     pub(crate) secret_token: Uuid,
     pub(crate) name: String,
 }
 
 impl User {
-    pub fn new(name: String) -> Result<Self> {
+    pub(crate) fn new(name: String) -> Result<Self> {
         if name.is_empty() {
             return Err(anyhow!("name is empty").context("failed to validate name"));
         }
@@ -27,7 +27,7 @@ impl User {
 }
 
 #[derive(Debug, Clone)]
-pub struct Meeting {
+pub(crate) struct Meeting {
     pub(crate) id: Uuid,
     pub(crate) name: String,
     pub(crate) description: Option<String>,
@@ -37,7 +37,7 @@ pub struct Meeting {
 }
 
 impl Meeting {
-    pub fn new(name: String, description: Option<String>, user_id: Uuid) -> Result<Self> {
+    pub(crate) fn new(name: String, description: Option<String>, user_id: Uuid) -> Result<Self> {
         if name.is_empty() {
             return Err(anyhow!("name is empty").context("failed to validate name"));
         }
