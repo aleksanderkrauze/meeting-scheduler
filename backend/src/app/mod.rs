@@ -33,8 +33,8 @@ pub async fn run_server(config: Arc<Config>) -> Result<(), anyhow::Error> {
         .route("/meeting/:uuid", get(handlers::get_meeting_by_id))
         .with_state(app_state);
 
-    info!("Starting server");
     let address = config.server_socket_addr();
+    info!(?address, "Starting server");
     Server::try_bind(&address)
         .with_context(|| format!("failed to bind server to address {:?}", address))?
         .serve(app.into_make_service())

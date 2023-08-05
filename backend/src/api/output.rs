@@ -76,7 +76,7 @@ pub(crate) struct Participant {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub(crate) struct ProposedDate {
     pub(crate) id: Uuid,
-    #[serde(with = "super::serde_date")]
+    #[serde(with = "super::serde_rfc_3339::date")]
     pub(crate) date: Date,
 }
 
@@ -97,7 +97,7 @@ pub(crate) struct MeetingInfo {
     /// Id of the user that created the meeting
     pub(crate) created_by: Uuid,
     /// Date and time of meeting creation
-    #[serde(with = "time::serde::iso8601")]
+    #[serde(with = "super::serde_rfc_3339::offset_date_time")]
     pub(crate) created_at: OffsetDateTime,
 }
 
@@ -125,7 +125,7 @@ pub(crate) struct MeetingComment {
     /// Id of the user that posted the comment
     pub(crate) written_by: Uuid,
     /// Date and time of posting comment
-    #[serde(with = "time::serde::iso8601")]
+    #[serde(with = "super::serde_rfc_3339::offset_date_time")]
     pub(crate) posted_at: OffsetDateTime,
 }
 
