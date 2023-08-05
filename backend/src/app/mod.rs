@@ -25,7 +25,11 @@ pub async fn run_server(
     config: Arc<Config>,
     cancellation_token: CancellationToken,
 ) -> Result<(), anyhow::Error> {
-    let database_pool = db_pool_connect(Arc::clone(&config)).await;
+    let database_pool = match db_pool_connect(Arc::clone(&config), cancellation_token.clone()).await
+    {
+        Some(pool) => pool,
+        None => return Ok(()),
+    };
 
     let app_state = AppState {
         config: Arc::clone(&config),
@@ -52,18 +56,26 @@ pub async fn run_server(
     Ok(())
 }
 
-async fn db_pool_connect(config: Arc<Config>) -> PgPool {
+async fn db_pool_connect(
+    config: Arc<Config>,
+    cancellation_token: CancellationToken,
+) -> Option<PgPool> {
     let uri = config.postgres_uri();
     let timeout = Duration::from_secs(5);
     info!("Connecting to database");
     loop {
+        if cancellation_token.is_cancelled() {
+            info!("Received cancellation request. Abandoning database pool connection");
+            return None;
+        }
+
         let pool = PgPoolOptions::new()
             .max_connections(64)
             .acquire_timeout(timeout)
             .connect(&uri)
             .await;
         match pool {
-            Ok(pool) => return pool,
+            Ok(pool) => return Some(pool),
             Err(e) => warn!("Connecting to database failed: `{:?}`. Trying again...", e),
         }
     }
