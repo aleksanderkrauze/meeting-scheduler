@@ -9,6 +9,7 @@ use axum::{
     Router, Server,
 };
 use sqlx::{postgres::PgPoolOptions, PgPool};
+use tokio_util::sync::CancellationToken;
 use tracing::{info, warn};
 
 use crate::config::Config;
@@ -20,7 +21,10 @@ pub(crate) struct AppState {
     pub(crate) database_pool: PgPool,
 }
 
-pub async fn run_server(config: Arc<Config>) -> Result<(), anyhow::Error> {
+pub async fn run_server(
+    config: Arc<Config>,
+    cancellation_token: CancellationToken,
+) -> Result<(), anyhow::Error> {
     let database_pool = db_pool_connect(Arc::clone(&config)).await;
 
     let app_state = AppState {
@@ -38,6 +42,10 @@ pub async fn run_server(config: Arc<Config>) -> Result<(), anyhow::Error> {
     Server::try_bind(&address)
         .with_context(|| format!("failed to bind server to address {:?}", address))?
         .serve(app.into_make_service())
+        .with_graceful_shutdown(async move {
+            cancellation_token.cancelled().await;
+            info!("Server received cancellation signal. Starting gracefull shutdown");
+        })
         .await
         .context("Failed to start server")?;
 
