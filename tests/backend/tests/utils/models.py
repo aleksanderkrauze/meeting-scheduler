@@ -21,6 +21,28 @@ class CreateMeetingData:
 
 
 @dataclass
+class CreateMeetingResponse:
+    user_id: UUID
+    user_secret_token: UUID
+    meeting_id: UUID
+
+    @staticmethod
+    def from_json_dict(data: dict) -> Self:
+        try:
+            user_id, user_secret_token, meeting_id = itemgetter(
+                "user_id", "user_secret_token", "meeting_id")(data)
+            assert len(data) == 3, "excessive items in data"
+
+            user_id = UUID(user_id)
+            user_secret_token = UUID(user_secret_token)
+            meeting_id = UUID(meeting_id)
+
+            return CreateMeetingResponse(user_id=user_id, user_secret_token=user_secret_token, meeting_id=meeting_id)
+        except Exception as e:
+            raise ValueError(f"failed to parse data: {data}") from e
+
+
+@dataclass
 class MeetingComment:
     message: str
     written_by: UUID
@@ -108,6 +130,7 @@ class MeetingVote:
         try:
             participant_id, date_id, vote, comment = itemgetter(
                 "participant_id", "date_id", "vote", "comment")(data)
+            assert len(data) == 4, "excessive items in data"
 
             participant_id = UUID(participant_id)
             date_id = UUID(date_id)
@@ -135,6 +158,7 @@ class Meeting:
             name, description, created_by, created_at, comments, participants, proposed_dates, votes = \
                 itemgetter("name", "description", "created_by", "created_at",
                            "comments", "participants", "proposed_dates", "votes")(data)
+            assert len(data) == 8, "excessive items in data"
 
             created_by = UUID(created_by)
             created_at = datetime.fromisoformat(created_at)

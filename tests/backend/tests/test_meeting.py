@@ -4,7 +4,8 @@ import uuid
 import pytest
 import requests
 
-from tests.utils.models import CreateMeetingData, Meeting
+from tests.utils.actions import create_meeting, get_meeting_info
+from tests.utils.models import CreateMeetingData
 
 
 def test_get_noexisting_meeting_returns_404(server_address):
@@ -31,41 +32,21 @@ def test_post_meeting_without_content_type_header_returns_415(server_address):
 def test_create_meeting_success_and_meeting_response_is_correct(server_address, data: CreateMeetingData):
     timestamp_before_request = datetime.now(tz=timezone.utc)
 
-    url = f"http://{server_address}/meeting"
-    post_request = requests.post(url=url, json=data.to_json_dict())
-    assert post_request.status_code == 201
+    new_meeting = create_meeting(server_address=server_address, data=data)
+    meeting_info = get_meeting_info(
+        server_address=server_address, id=new_meeting.meeting_id)
 
-    response_data = post_request.json()
-    user_id = response_data["user_id"]
-    user_secret_token = response_data["user_secret_token"]
-    meeting_id = response_data["meeting_id"]
+    assert meeting_info.name == data.meeting_name
+    assert meeting_info.description == data.meeting_description
+    assert len(meeting_info.comments) == 0
+    assert len(meeting_info.proposed_dates) == 0
+    assert len(meeting_info.votes) == 0
 
-    # assert that data is proper UUIDs
-    _ = uuid.UUID(user_id)
-    _ = uuid.UUID(user_secret_token)
-    _ = uuid.UUID(meeting_id)
-
-    # assert there is no additional data
-    assert len(response_data) == 3
-
-    url = f"http://{server_address}/meeting/{meeting_id}"
-    get_request = requests.get(url=url)
-    assert get_request.status_code == 200
-
-    response_data = get_request.json()
-    meeting = Meeting.from_json_dict(response_data)
-
-    assert meeting.name == data.meeting_name
-    assert meeting.description == data.meeting_description
-    assert len(meeting.comments) == 0
-    assert len(meeting.proposed_dates) == 0
-    assert len(meeting.votes) == 0
-
-    assert len(meeting.participants) == 1
-    creator = meeting.participants[0]
-    assert meeting.created_by == creator.id
+    assert len(meeting_info.participants) == 1
+    creator = meeting_info.participants[0]
+    assert meeting_info.created_by == creator.id
     assert creator.name == data.user_name
 
     timestamp_after_request = datetime.now(tz=timezone.utc)
-    assert meeting.created_at.tzinfo is not None
-    assert timestamp_before_request < meeting.created_at < timestamp_after_request
+    assert meeting_info.created_at.tzinfo is not None
+    assert timestamp_before_request < meeting_info.created_at < timestamp_after_request
