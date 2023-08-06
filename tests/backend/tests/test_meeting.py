@@ -4,8 +4,8 @@ import uuid
 import pytest
 import requests
 
-from tests.utils.actions import create_meeting, get_meeting_info
-from tests.utils.models import CreateMeetingData
+from tests.utils.actions import create_meeting, get_meeting_info, join_meeting
+from tests.utils.models import CreateMeetingData, MeetingParticipant
 
 
 def test_get_noexisting_meeting_returns_404(server_address):
@@ -50,3 +50,29 @@ def test_create_meeting_success_and_meeting_response_is_correct(server_address, 
     timestamp_after_request = datetime.now(tz=timezone.utc)
     assert meeting_info.created_at.tzinfo is not None
     assert timestamp_before_request < meeting_info.created_at < timestamp_after_request
+
+
+@pytest.mark.xfail(reason="Not implemented yet")
+def test_join_meeting(server_address):
+    user_name1 = "User 1"
+    user_name2 = "User 2"
+
+    meeting_data = CreateMeetingData(
+        meeting_name="test name", meeting_description=None, user_name=user_name1)
+    new_meeting = create_meeting(
+        server_address=server_address, data=meeting_data)
+
+    meeting_id = new_meeting.meeting_id
+    user2 = join_meeting(server_address=server_address,
+                         meeting_id=meeting_id, name=user_name2)
+
+    meeting_info = get_meeting_info(
+        server_address=server_address, id=new_meeting.meeting_id)
+
+    meeting_participants = list(sorted(meeting_info.participants))
+    expected_participants = list(sorted([
+        MeetingParticipant(id=new_meeting.user_id, name=user_name1),
+        MeetingParticipant(id=user2.id, name=user_name2),
+    ]))
+
+    assert meeting_participants == expected_participants

@@ -181,3 +181,32 @@ class Meeting:
             )
         except Exception as e:
             raise ValueError(f"failed to parse data: {data}") from e
+
+
+@dataclass
+class JoinMeetingData:
+    name: str
+
+    def to_json_dict(self) -> dict:
+        return {
+            "name": self.name
+        }
+
+
+@dataclass
+class JoinMeetingResponse:
+    id: UUID
+    secret_token: UUID
+
+    @staticmethod
+    def from_json_dict(data: dict) -> Self:
+        try:
+            id, secret_token = itemgetter("id", "secret_token")(data)
+            assert len(data) == 2, "excessive items in data"
+
+            id = UUID(id)
+            secret_token = UUID(secret_token)
+
+            return JoinMeetingResponse(id=id, secret_token=secret_token)
+        except Exception as e:
+            raise ValueError(f"failed to parse data: {data}") from e
