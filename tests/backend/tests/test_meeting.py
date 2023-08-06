@@ -52,7 +52,6 @@ def test_create_meeting_success_and_meeting_response_is_correct(server_address, 
     assert timestamp_before_request < meeting_info.created_at < timestamp_after_request
 
 
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_join_meeting(server_address):
     user_name1 = "User 1"
     user_name2 = "User 2"

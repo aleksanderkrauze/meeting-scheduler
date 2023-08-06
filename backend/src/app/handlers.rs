@@ -7,9 +7,12 @@ use axum::{
 use tracing::info;
 use uuid::Uuid;
 
-use super::{business_logic, AppState};
-use crate::api::input::CreateMeetingData;
-use crate::api::output::{CreatedMeeting, Meeting};
+use super::{
+    business_logic::{self, User},
+    AppState,
+};
+use crate::api::input::{CreateMeetingData, JoinMeetingData};
+use crate::api::output::{CreatedMeeting, JoinMeetingResponse, Meeting};
 use crate::database;
 
 #[axum_macros::debug_handler]
@@ -73,6 +76,28 @@ pub(crate) async fn create_meeting(
     };
     info!(?response, "Created new meeting");
     Ok((StatusCode::CREATED, Json(response)))
+}
+
+#[axum_macros::debug_handler]
+#[tracing::instrument(skip(app_state))]
+pub(crate) async fn join_meeting(
+    State(app_state): State<AppState>,
+    Path(meeting_id): Path<Uuid>,
+    Json(data): Json<JoinMeetingData>,
+) -> Result<(StatusCode, Json<JoinMeetingResponse>), StatusCode> {
+    let user = User::new(data.name).map_err(bad_request)?;
+
+    database::join_meeting(&user, meeting_id, &app_state.database_pool)
+        .await
+        .map_err(internal_error)?;
+
+    Ok((
+        StatusCode::CREATED,
+        Json(JoinMeetingResponse {
+            id: user.id,
+            secret_token: user.secret_token,
+        }),
+    ))
 }
 
 fn internal_error(err: anyhow::Error) -> StatusCode {

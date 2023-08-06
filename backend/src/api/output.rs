@@ -230,3 +230,9 @@ pub(crate) struct CreatedMeeting {
     pub(crate) user_secret_token: Uuid,
     pub(crate) meeting_id: Uuid,
 }
+
+#[derive(Debug, Clone, Serialize)]
+pub(crate) struct JoinMeetingResponse {
+    pub(crate) id: Uuid,
+    pub(crate) secret_token: Uuid,
+}

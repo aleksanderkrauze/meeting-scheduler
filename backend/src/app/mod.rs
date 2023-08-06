@@ -39,6 +39,7 @@ pub async fn run_server(
     let app = Router::new()
         .route("/meeting", post(handlers::create_meeting))
         .route("/meeting/:uuid", get(handlers::get_meeting_by_id))
+        .route("/meeting/:uuid/join", post(handlers::join_meeting))
         .with_state(app_state);
 
     let address = config.server_socket_addr();

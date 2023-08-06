@@ -63,7 +63,7 @@ class MeetingComment:
             raise ValueError(f"failed to parse data: {data}") from e
 
 
-@dataclass
+@dataclass(order=True)
 class MeetingParticipant:
     id: UUID
     name: str

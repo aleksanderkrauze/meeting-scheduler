@@ -175,3 +175,63 @@ VALUES
         Ok(())
     }
 }
+
+pub(crate) async fn join_meeting(
+    user: &business_logic::User,
+    meeting_id: Uuid,
+    pool: &PgPool,
+) -> Result<()> {
+    let insert_user_query = r#"
+INSERT INTO
+    users(id, secret_token, name)
+VALUES
+    ($1, $2, $3)
+"#;
+    let insert_meeting_participants_query = r#"
+INSERT INTO
+    meeting_participants(user_id, meeting_id)
+VALUES
+    ($1, $2)
+"#;
+
+    let insert_user = || async {
+        sqlx::query(insert_user_query)
+            .bind(user.id)
+            .bind(user.secret_token)
+            .bind(&user.name)
+            .execute(pool)
+            .await
+            .context("failed to insert into users")
+    };
+    let insert_meeting_participants = || async {
+        sqlx::query(insert_meeting_participants_query)
+            .bind(user.id)
+            .bind(meeting_id)
+            .execute(pool)
+            .await
+            .context("failed to insert into meeting_participants")
+    };
+
+    info!("starting transaction");
+    let transaction = pool.begin().await.context("failed to begin transaction")?;
+    if let Err(error) = insert_user()
+        .and_then(|_| async { insert_meeting_participants().await })
+        .await
+    {
+        match transaction.rollback().await {
+            Ok(_) => warn!(database_error = ?error, "rolled back transaction"),
+            Err(rollback_error) => {
+                error!(database_error = ?error, ?rollback_error, "failed to rollback transaction");
+            }
+        }
+
+        Err(error)
+    } else {
+        transaction
+            .commit()
+            .await
+            .context("failed to commit transaction")?;
+        info!("commited transaction");
+        Ok(())
+    }
+}
