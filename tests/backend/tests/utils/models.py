@@ -210,3 +210,17 @@ class JoinMeetingResponse:
             return JoinMeetingResponse(id=id, secret_token=secret_token)
         except Exception as e:
             raise ValueError(f"failed to parse data: {data}") from e
+
+
+@dataclass
+class PostCommentData:
+    user_id: UUID
+    user_token: UUID
+    comment: str
+
+    def to_json_dict(self) -> dict:
+        return {
+            "user_id": str(self.user_id),
+            "user_token": str(self.user_token),
+            "comment": self.comment,
+        }

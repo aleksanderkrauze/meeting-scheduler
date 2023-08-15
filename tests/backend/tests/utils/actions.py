@@ -3,7 +3,7 @@ from uuid import UUID
 import requests
 
 from tests.utils.models import CreateMeetingData, CreateMeetingResponse, Meeting, \
-    JoinMeetingResponse, JoinMeetingData
+    JoinMeetingResponse, JoinMeetingData, PostCommentData
 
 
 def create_meeting(server_address: str, data: CreateMeetingData) -> requests.Response:
@@ -57,3 +57,19 @@ def join_meeting_and_validate(server_address: str, meeting_id: UUID, name: str) 
 
     response_data = response.json()
     return JoinMeetingResponse.from_json_dict(response_data)
+
+
+def post_comment(server_address: str, meeting_id: UUID, data: PostCommentData) -> requests.Response:
+    """Posts comment as given user"""
+
+    url = f"http://{server_address}/meeting/{meeting_id}/comment"
+    return requests.post(url=url, json=data.to_json_dict())
+
+
+def post_comment_and_validate(server_address: str, meeting_id: UUID, data: PostCommentData) -> requests.Response:
+    """Posts comment as given user and validates response"""
+
+    response = post_comment(server_address=server_address,
+                            meeting_id=meeting_id, data=data)
+    assert response.status_code == 201, f"{response.status_code=}"
+    assert len(response.content) == 0, f"{response.content=}"
