@@ -4,16 +4,15 @@ import uuid
 import pytest
 import requests
 
-from tests.utils.actions import create_meeting, get_meeting_info, join_meeting
+from tests.utils.actions import create_meeting_and_validate, get_meeting_info_and_validate, \
+    join_meeting_and_validate, get_meeting_info
 from tests.utils.models import CreateMeetingData, MeetingParticipant
 
 
 def test_get_noexisting_meeting_returns_404(server_address):
     id = uuid.uuid4()
-    url = f"http://{server_address}/meeting/{id}"
-
-    r = requests.get(url=url)
-    assert r.status_code == 404
+    response = get_meeting_info(server_address=server_address, id=id)
+    assert response.status_code == 404
 
 
 def test_post_meeting_without_content_type_header_returns_415(server_address):
@@ -32,8 +31,9 @@ def test_post_meeting_without_content_type_header_returns_415(server_address):
 def test_create_meeting_success_and_meeting_response_is_correct(server_address, data: CreateMeetingData):
     timestamp_before_request = datetime.now(tz=timezone.utc)
 
-    new_meeting = create_meeting(server_address=server_address, data=data)
-    meeting_info = get_meeting_info(
+    new_meeting = create_meeting_and_validate(
+        server_address=server_address, data=data)
+    meeting_info = get_meeting_info_and_validate(
         server_address=server_address, id=new_meeting.meeting_id)
 
     assert meeting_info.name == data.meeting_name
@@ -58,14 +58,14 @@ def test_join_meeting(server_address):
 
     meeting_data = CreateMeetingData(
         meeting_name="test name", meeting_description=None, user_name=user_name1)
-    new_meeting = create_meeting(
+    new_meeting = create_meeting_and_validate(
         server_address=server_address, data=meeting_data)
 
     meeting_id = new_meeting.meeting_id
-    user2 = join_meeting(server_address=server_address,
-                         meeting_id=meeting_id, name=user_name2)
+    user2 = join_meeting_and_validate(server_address=server_address,
+                                      meeting_id=meeting_id, name=user_name2)
 
-    meeting_info = get_meeting_info(
+    meeting_info = get_meeting_info_and_validate(
         server_address=server_address, id=new_meeting.meeting_id)
 
     meeting_participants = list(sorted(meeting_info.participants))

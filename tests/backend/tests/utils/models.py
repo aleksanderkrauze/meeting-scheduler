@@ -189,7 +189,7 @@ class JoinMeetingData:
 
     def to_json_dict(self) -> dict:
         return {
-            "name": self.name
+            "name": self.name,
         }
 
 
