@@ -4,7 +4,7 @@ use serde::ser::Error as _;
 use serde::{de, Deserializer, Serialize, Serializer};
 use time::{format_description::FormatItem, macros::format_description, Date};
 
-const RFC3339_FORMAT: &'static [FormatItem<'_>] = format_description!("[year]-[month]-[day]");
+const RFC3339_FORMAT: &[FormatItem<'_>] = format_description!("[year]-[month]-[day]");
 
 struct Rfc3339DateVisitor;
 
