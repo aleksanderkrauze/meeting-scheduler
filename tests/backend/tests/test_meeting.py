@@ -53,6 +53,15 @@ def test_create_meeting_success_and_meeting_response_is_correct(server_address, 
     assert timestamp_before_request < meeting_info.created_at < timestamp_after_request
 
 
+@pytest.mark.xfail(reason="Bug")
+def test_join_nonexsistent_meeting_returns_404_not_found(server_address):
+    nonexistent_meeting_id = uuid.uuid4()
+    response = join_meeting(server_address=server_address,
+                            meeting_id=nonexistent_meeting_id, name="User")
+
+    assert response.status_code == 400, f"{response.status_code=}"
+
+
 def test_join_meeting(server_address):
     user_name1 = "User 1"
     user_name2 = "User 2"
