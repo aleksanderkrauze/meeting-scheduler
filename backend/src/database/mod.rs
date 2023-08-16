@@ -1,13 +1,14 @@
 pub(crate) mod models;
 
-use anyhow::{Context, Result};
+use anyhow::{self, Context, Result};
 use futures::future::TryFutureExt;
 use sqlx::PgPool;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, trace, warn};
 use uuid::Uuid;
 
 use crate::app::business_logic;
 
+#[tracing::instrument(skip(pool))]
 pub(crate) async fn get_meeting_info(
     id: Uuid,
     pool: &PgPool,
@@ -33,6 +34,7 @@ WHERE
     Ok(meeting)
 }
 
+#[tracing::instrument(skip(pool))]
 pub(crate) async fn get_meeting_comments(
     id: Uuid,
     pool: &PgPool,
@@ -60,6 +62,7 @@ ORDER BY
     Ok(comments)
 }
 
+#[tracing::instrument(skip(pool))]
 pub(crate) async fn get_meeting_participants_proposed_dates_votes(
     id: Uuid,
     pool: &PgPool,
@@ -90,11 +93,12 @@ WHERE
         "Queering meeting participants, proposed dates and their votes"
     );
 
-    sqlx::query_as(query)
-        .bind(id)
-        .fetch_all(pool)
-        .await
-        .map_err(Into::into)
+    let data = sqlx::query_as(query).bind(id).fetch_all(pool).await?;
+    debug!(
+        ?data,
+        "Received meeting participants, proposed dates and their votes"
+    );
+    Ok(data)
 }
 
 pub(crate) async fn create_new_meeting(
@@ -151,7 +155,8 @@ VALUES
             .context("failed to insert into meeting_participants")
     };
 
-    info!("starting transaction");
+    debug!(?user, ?meeting, "Creating new meeting");
+    trace!("Starting transaction");
     let transaction = pool.begin().await.context("failed to begin transaction")?;
     if let Err(error) = insert_user()
         .and_then(|_| async { insert_meeting().await })
@@ -159,28 +164,45 @@ VALUES
         .await
     {
         match transaction.rollback().await {
-            Ok(_) => warn!(database_error = ?error, "rolled back transaction"),
+            Ok(_) => trace!(database_error = ?error, "rolled back transaction"),
             Err(rollback_error) => {
-                error!(database_error = ?error, ?rollback_error, "failed to rollback transaction");
+                warn!(database_error = ?error, ?rollback_error, "failed to rollback transaction");
             }
         }
 
+        debug!(database_error=?error, "Failed to create new meeting");
         Err(error)
     } else {
         transaction
             .commit()
             .await
             .context("failed to commit transaction")?;
-        info!("commited transaction");
+        trace!("Committed transaction");
+        debug!("Successfully created new meeting");
         Ok(())
     }
 }
 
+/// Error returned when joining a meeting as a participant fails.
+#[derive(Debug, thiserror::Error)]
+pub(crate) enum JoinMeetingError {
+    /// Meeting with provided ID does not exist.
+    ///
+    /// UUID data of this variant is the id of meeting that user
+    /// tried to join.
+    #[error("meeting with id `{0}` does not exist")]
+    NonexistentMeeting(Uuid),
+    /// Database operation failed.
+    #[error(transparent)]
+    Database(#[from] anyhow::Error),
+}
+
+#[tracing::instrument(skip(pool))]
 pub(crate) async fn join_meeting(
     user: &business_logic::User,
     meeting_id: Uuid,
     pool: &PgPool,
-) -> Result<()> {
+) -> Result<(), JoinMeetingError> {
     let insert_user_query = r#"
 INSERT INTO
     users(id, secret_token, name)
@@ -212,26 +234,62 @@ VALUES
             .context("failed to insert into meeting_participants")
     };
 
-    info!("starting transaction");
+    debug!(participant_data=?user, ?meeting_id, "Creating new participant");
+    trace!("Starting transaction");
     let transaction = pool.begin().await.context("failed to begin transaction")?;
+
+    // Check if meeting exists
+    match meeting_exists(meeting_id, pool).await {
+        Ok(true) => { /* Meeting exists, so we can procede with inserting user */ }
+        Ok(false) => return Err(JoinMeetingError::NonexistentMeeting(meeting_id)),
+        Err(error) => return Err(error.into()),
+    }
+
     if let Err(error) = insert_user()
         .and_then(|_| async { insert_meeting_participants().await })
         .await
     {
         match transaction.rollback().await {
-            Ok(_) => warn!(database_error = ?error, "rolled back transaction"),
+            Ok(_) => trace!(database_error = ?error, "rolled back transaction"),
             Err(rollback_error) => {
-                error!(database_error = ?error, ?rollback_error, "failed to rollback transaction");
+                warn!(database_error = ?error, ?rollback_error, "failed to rollback transaction");
             }
         }
 
-        Err(error)
+        debug!(database_error=?error, "Failed to add new meeting participant");
+        Err(error.into())
     } else {
         transaction
             .commit()
             .await
             .context("failed to commit transaction")?;
-        info!("commited transaction");
+        trace!("Committed transaction");
+        debug!("Successfully added new participant");
         Ok(())
     }
+}
+
+/// Checks it meeting with provided ID exists. Must be executed inside
+/// transaction to avoid time-of-check-time-of-use bugs.
+async fn meeting_exists(meeting_id: Uuid, pool: &PgPool) -> Result<bool> {
+    let select_meeting_by_id = r#"
+SELECT
+    id
+FROM
+    meeting
+WHERE
+    meeting.id = $1
+"#;
+
+    debug!(?meeting_id, "Checking if meeting exists");
+
+    let exists = sqlx::query(select_meeting_by_id)
+        .bind(meeting_id)
+        .fetch_optional(pool)
+        .await
+        .with_context(|| format!("Failed to check if meeting with id `{meeting_id}` exists"))?
+        .is_some();
+
+    debug!(?exists, "Received status from database");
+    Ok(exists)
 }

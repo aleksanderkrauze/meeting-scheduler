@@ -4,7 +4,7 @@ use tokio::signal::unix::{signal, SignalKind};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 use tracing_subscriber::{
-    filter::{self, FilterExt},
+    filter,
     layer::{Layer, SubscriberExt},
     registry,
     util::SubscriberInitExt,
@@ -17,11 +17,9 @@ async fn main() -> Result<()> {
     let stderr_layer = tracing_subscriber::fmt::layer()
         .pretty()
         .with_writer(std::io::stderr)
-        .with_filter(
-            filter::LevelFilter::DEBUG.and(filter::filter_fn(|metadata| {
-                metadata.target().starts_with("backend")
-            })),
-        );
+        .with_filter(filter::filter_fn(|metadata| {
+            metadata.target().starts_with("backend")
+        }));
     registry().with(stderr_layer).init();
 
     tracing::info!("Loading .env file");

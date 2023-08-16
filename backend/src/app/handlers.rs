@@ -21,7 +21,7 @@ pub(crate) async fn get_meeting_by_id(
     State(app_state): State<AppState>,
     Path(id): Path<Uuid>,
 ) -> Result<Json<Meeting>, StatusCode> {
-    info!("Getting meeting info");
+    info!(meeting_id=?id, "Getting meeting info");
 
     let meeting_info = database::get_meeting_info(id, &app_state.database_pool)
         .await
@@ -54,7 +54,7 @@ pub(crate) async fn create_meeting(
     State(app_state): State<AppState>,
     Json(data): Json<CreateMeetingData>,
 ) -> Result<(StatusCode, Json<CreatedMeeting>), StatusCode> {
-    info!("Creating new meeting");
+    info!(meeting_data=?data, "Creating new meeting");
 
     let user = business_logic::User::new(data.user_name)
         .context("failed to create user")
@@ -85,19 +85,25 @@ pub(crate) async fn join_meeting(
     Path(meeting_id): Path<Uuid>,
     Json(data): Json<JoinMeetingData>,
 ) -> Result<(StatusCode, Json<JoinMeetingResponse>), StatusCode> {
+    info!(?meeting_id, join_meeting_data=?data, "Creating new meeting participant");
+
     let user = User::new(data.name).map_err(bad_request)?;
 
-    database::join_meeting(&user, meeting_id, &app_state.database_pool)
-        .await
-        .map_err(internal_error)?;
+    if let Err(error) = database::join_meeting(&user, meeting_id, &app_state.database_pool).await {
+        match error {
+            database::JoinMeetingError::NonexistentMeeting(_) => {
+                return Err(bad_request(error.into()))
+            }
+            database::JoinMeetingError::Database(err) => return Err(internal_error(err)),
+        }
+    }
 
-    Ok((
-        StatusCode::CREATED,
-        Json(JoinMeetingResponse {
-            id: user.id,
-            secret_token: user.secret_token,
-        }),
-    ))
+    let response = JoinMeetingResponse {
+        id: user.id,
+        secret_token: user.secret_token,
+    };
+    info!(?response, "Created new meeting participant");
+    Ok((StatusCode::CREATED, Json(response)))
 }
 
 fn internal_error(err: anyhow::Error) -> StatusCode {
