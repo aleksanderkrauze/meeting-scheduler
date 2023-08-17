@@ -86,7 +86,6 @@ def test_join_meeting(server_address):
     assert meeting_participants == expected_participants
 
 
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_post_comment_with_invalid_user_id_returns_401_unauthorized(server_address):
     meeting_data = CreateMeetingData(
         meeting_name="test name", meeting_description=None, user_name="user")
@@ -104,7 +103,6 @@ def test_post_comment_with_invalid_user_id_returns_401_unauthorized(server_addre
     assert response.status_code == 401, f"{response.status_code=}"
 
 
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_post_comment_with_invalid_secret_token_returns_403_forbidden(server_address):
     meeting_data = CreateMeetingData(
         meeting_name="test name", meeting_description=None, user_name="user")
@@ -121,7 +119,6 @@ def test_post_comment_with_invalid_secret_token_returns_403_forbidden(server_add
     assert response.status_code == 403, f"{response.status_code=}"
 
 
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_post_comment_to_nonexistent_meeting_returns_404_not_found(server_address):
     nonexistent_meeting_id = uuid.uuid4()
     nonexistent_user_id = uuid.uuid4()
@@ -135,7 +132,6 @@ def test_post_comment_to_nonexistent_meeting_returns_404_not_found(server_addres
     assert response.status_code == 404, f"{response.status_code=}"
 
 
-@pytest.mark.xfail(reason="Not implemented yet")
 def test_post_comment(server_address):
     # Setup
     user1_name = "user1"

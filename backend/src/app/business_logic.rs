@@ -12,7 +12,7 @@ pub(crate) struct User {
 impl User {
     pub(crate) fn new(name: String) -> Result<Self> {
         if name.is_empty() {
-            return Err(anyhow!("name is empty").context("failed to validate name"));
+            return Err(anyhow!("user name is empty").context("failed to validate name"));
         }
 
         let id = Uuid::new_v4();
@@ -39,7 +39,7 @@ pub(crate) struct Meeting {
 impl Meeting {
     pub(crate) fn new(name: String, description: Option<String>, user_id: Uuid) -> Result<Self> {
         if name.is_empty() {
-            return Err(anyhow!("name is empty").context("failed to validate name"));
+            return Err(anyhow!("meeting name is empty").context("failed to validate name"));
         }
         if let Some(ref description) = description {
             if description.is_empty() {
@@ -60,6 +60,34 @@ impl Meeting {
             created_at,
             expires_at,
             user_id,
+        })
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct MeetingComment {
+    pub(crate) id: Uuid,
+    pub(crate) user_id: Uuid,
+    pub(crate) meeting_id: Uuid,
+    pub(crate) message: String,
+    pub(crate) posted_at: OffsetDateTime,
+}
+
+impl MeetingComment {
+    pub(crate) fn new(user_id: Uuid, meeting_id: Uuid, message: String) -> Result<Self> {
+        if message.is_empty() {
+            return Err(anyhow!("comment message is empty").context("failed to validate comment"));
+        }
+
+        let id = Uuid::new_v4();
+        let posted_at = OffsetDateTime::now_utc();
+
+        Ok(Self {
+            id,
+            user_id,
+            meeting_id,
+            message,
+            posted_at,
         })
     }
 }

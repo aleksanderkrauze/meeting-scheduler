@@ -1,5 +1,6 @@
 pub(crate) mod business_logic;
 pub(crate) mod handlers;
+pub(crate) mod middleware;
 
 use std::{sync::Arc, time::Duration};
 
@@ -40,6 +41,7 @@ pub async fn run_server(
         .route("/meeting", post(handlers::create_meeting))
         .route("/meeting/:uuid", get(handlers::get_meeting_by_id))
         .route("/meeting/:uuid/join", post(handlers::join_meeting))
+        .route("/meeting/:uuid/comment", post(handlers::post_comment))
         .with_state(app_state);
 
     let address = config.server_socket_addr();
@@ -54,6 +56,7 @@ pub async fn run_server(
         .await
         .context("Failed to start server")?;
 
+    info!("HTTP server was closed successfully");
     Ok(())
 }
 

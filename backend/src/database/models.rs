@@ -48,3 +48,15 @@ pub(crate) struct ParticipantsProposedDatesVotes {
     /// Optional vote comment. May be NOT NULL <=> date_id is NOT NULL
     pub(crate) comment: Option<String>,
 }
+
+#[derive(Debug, Clone, FromRow)]
+pub(crate) struct UserSecretToken {
+    /// Secret token of given user
+    pub(crate) secret_token: Uuid,
+}
+
+impl UserSecretToken {
+    pub(crate) fn into_token(self) -> Uuid {
+        self.secret_token
+    }
+}

@@ -239,6 +239,7 @@ VALUES
     let transaction = pool.begin().await.context("failed to begin transaction")?;
 
     // Check if meeting exists
+    // TODO: move this to the caller & later use as a middleware
     match meeting_exists(meeting_id, pool).await {
         Ok(true) => { /* Meeting exists, so we can procede with inserting user */ }
         Ok(false) => return Err(JoinMeetingError::NonexistentMeeting(meeting_id)),
@@ -269,9 +270,61 @@ VALUES
     }
 }
 
+#[tracing::instrument(skip(pool))]
+pub(crate) async fn post_comment(
+    meeting_comment: &business_logic::MeetingComment,
+    pool: &PgPool,
+) -> Result<()> {
+    let insert_meeting_comment_query = r#"
+INSERT INTO
+    meeting_comment(id, user_id, meeting_id, message, posted_at)
+VALUES
+    ($1, $2, $3, $4, $5)
+"#;
+
+    debug!("Inserting meeting comment into database");
+    sqlx::query(insert_meeting_comment_query)
+        .bind(meeting_comment.id)
+        .bind(meeting_comment.user_id)
+        .bind(meeting_comment.meeting_id)
+        .bind(&meeting_comment.message)
+        .bind(meeting_comment.posted_at)
+        .execute(pool)
+        .await
+        .context("failed to insert meeting into database")?;
+
+    debug!("Meeting comment inserted successfully");
+    Ok(())
+}
+
+/// Returns `Some(secret_token)` of user with `user_id` from database.
+/// If user with provided `user_id` does not exist in the database this
+/// function will return `None`.
+pub(crate) async fn get_user_secret_token(user_id: Uuid, pool: &PgPool) -> Result<Option<Uuid>> {
+    let select_secret_token = r#"
+SELECT
+    secret_token
+FROM
+    users
+WHERE
+    id = $1
+"#;
+
+    debug!(?user_id, "Getting secret token of user");
+    let token = sqlx::query_as::<_, models::UserSecretToken>(select_secret_token)
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await
+        .context("failed to get user's secret token")?
+        .map(models::UserSecretToken::into_token);
+
+    debug!(?token, "Received user's secret token");
+    Ok(token)
+}
+
 /// Checks it meeting with provided ID exists. Must be executed inside
 /// transaction to avoid time-of-check-time-of-use bugs.
-async fn meeting_exists(meeting_id: Uuid, pool: &PgPool) -> Result<bool> {
+pub(crate) async fn meeting_exists(meeting_id: Uuid, pool: &PgPool) -> Result<bool> {
     let select_meeting_by_id = r#"
 SELECT
     id
