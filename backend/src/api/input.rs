@@ -17,5 +17,5 @@ pub(crate) struct JoinMeetingData {
 pub(crate) struct PostCommentData {
     pub(crate) user_id: Uuid,
     pub(crate) user_token: Uuid,
-    pub(crate) comment: String,
+    pub(crate) message: String,
 }

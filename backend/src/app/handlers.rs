@@ -116,7 +116,7 @@ pub(crate) async fn post_comment(
     let PostCommentData {
         user_id,
         user_token,
-        comment,
+        message,
     } = data;
 
     if !database::meeting_exists(meeting_id, &app_state.database_pool)
@@ -146,7 +146,7 @@ pub(crate) async fn post_comment(
     }
 
     let meeting_comment =
-        business_logic::MeetingComment::new(user_id, meeting_id, comment).map_err(bad_request)?;
+        business_logic::MeetingComment::new(user_id, meeting_id, message).map_err(bad_request)?;
     database::post_comment(&meeting_comment, &app_state.database_pool)
         .await
         .map_err(internal_error)?;

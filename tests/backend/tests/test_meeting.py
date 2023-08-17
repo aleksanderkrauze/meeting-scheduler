@@ -96,7 +96,7 @@ def test_post_comment_with_invalid_user_id_returns_401_unauthorized(server_addre
     nonexistent_user_token = uuid.uuid4()
 
     comment_data = PostCommentData(
-        user_id=nonexistent_user_id, user_token=nonexistent_user_token, comment="Foobar")
+        user_id=nonexistent_user_id, user_token=nonexistent_user_token, message="Foobar")
     response = post_comment(server_address=server_address,
                             meeting_id=new_meeting.meeting_id, data=comment_data)
 
@@ -112,7 +112,7 @@ def test_post_comment_with_invalid_secret_token_returns_403_forbidden(server_add
     nonexistent_user_token = uuid.uuid4()
 
     comment_data = PostCommentData(
-        user_id=new_meeting.user_id, user_token=nonexistent_user_token, comment="Foobar")
+        user_id=new_meeting.user_id, user_token=nonexistent_user_token, message="Foobar")
     response = post_comment(server_address=server_address,
                             meeting_id=new_meeting.meeting_id, data=comment_data)
 
@@ -125,7 +125,7 @@ def test_post_comment_to_nonexistent_meeting_returns_404_not_found(server_addres
     nonexistent_user_token = uuid.uuid4()
 
     comment_data = PostCommentData(
-        user_id=nonexistent_user_id, user_token=nonexistent_user_token, comment="Foobar")
+        user_id=nonexistent_user_id, user_token=nonexistent_user_token, message="Foobar")
     response = post_comment(server_address=server_address,
                             meeting_id=nonexistent_meeting_id, data=comment_data)
 
@@ -165,19 +165,19 @@ def test_post_comment(server_address):
     time0 = datetime.now(tz=timezone.utc)
 
     comment1_data = PostCommentData(
-        user_id=user1_id, user_token=user1_token, comment=comment1_text)
+        user_id=user1_id, user_token=user1_token, message=comment1_text)
     post_comment_and_validate(
         server_address=server_address, meeting_id=meeting_id, data=comment1_data)
     time1 = datetime.now(tz=timezone.utc)
 
     comment2_data = PostCommentData(
-        user_id=user2_id, user_token=user2_token, comment=comment2_text)
+        user_id=user2_id, user_token=user2_token, message=comment2_text)
     post_comment_and_validate(
         server_address=server_address, meeting_id=meeting_id, data=comment2_data)
     time2 = datetime.now(tz=timezone.utc)
 
     comment3_data = PostCommentData(
-        user_id=user3_id, user_token=user3_token, comment=comment3_text)
+        user_id=user3_id, user_token=user3_token, message=comment3_text)
     post_comment_and_validate(
         server_address=server_address, meeting_id=meeting_id, data=comment3_data)
     time3 = datetime.now(tz=timezone.utc)

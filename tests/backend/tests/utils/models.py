@@ -216,11 +216,11 @@ class JoinMeetingResponse:
 class PostCommentData:
     user_id: UUID
     user_token: UUID
-    comment: str
+    message: str
 
     def to_json_dict(self) -> dict:
         return {
             "user_id": str(self.user_id),
             "user_token": str(self.user_token),
-            "comment": self.comment,
+            "message": self.message,
         }
